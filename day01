@@ -153,3 +153,109 @@ http://localhost:8001/backend/hello 여기까지 되면 모두 완성
 
 gradle task에서 bootJar로 생성하여 다시 구동
 
+
+
+##
+
+1. Spring initailzr 실행
+
+Project: Gradle-Groovy
+Language: Java
+Dependencies: Eureka Discovery Client, Spring Web, Resilience4J 추가
+
+Artifact, Name, Description에 'CallerServerApplication' 입력
+Packaging은 Jar, Java는 17
+
+Explore 하고 Generate
+
+다운로드된 zip을 풀고 Eclipse에서 import-Gradle-Existing Gradle Project 선택
+Project root directory를 zip 푼 경로로 지정
+
+2. build.gradle에 다음 라인 추가, Gradle-Refresh Gradle Project
+
+implementation 'org.springframework.boot:spring-boot-starter-actuator'
+implementation 'org.springframework.boot:spring-boot-starter-aop'
+
+3. src/main/resources/application.yml 작성
+
+server:
+  port: 30000
+
+spring:
+  application:
+    name: caller-service
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka
+  instance:
+    preferIpAddress: true
+
+management:
+  endpoints.web.exposure.include:
+    - '*'
+  endpoint.health.show-details: always
+  health.circuitbreakers.enabled: true
+
+resilience4j.circuitbreaker:
+  configs:
+    default:
+      registerHealthIndicator: true
+      slidingWindowSize: 10
+      minimumNumberOfCalls: 5
+      permittedNumberOfCallsInHalfOpenState: 3
+      automaticTransitionFromOpenToHalfOpenEnabled: true
+      waitDurationInOpenState: 5s
+      failureRateThreshold: 50
+      eventConsumerBufferSize: 10
+
+4. RestTemplateConfig.java 추가
+
+package com.example.CallerServerApplication;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
+
+@Configuration
+public class RestTemplateConfig {
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
+}
+
+5. CallerController 추가
+
+package com.example.CallerServerApplication;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+
+@RestController
+public class CallerController {
+    @Autowired
+    private RestTemplate restTemplate;
+
+    @CircuitBreaker(name = "callOtherService", fallbackMethod = "fallbackMethod")
+    @RequestMapping("/call")
+    public String callOtherService() {
+        String result = restTemplate.getForObject("http://localhost:8002/hello", String.class);
+        return "Result from other service: " + result;
+    }
+
+    public String fallbackMethod(Throwable t) {
+        return "Fallback response due to: " + t.getMessage();
+    }
+}
+
+6. http://localhost:30000/call 로 접속
+
+7. 모든 BackendService 종료 후 다시 http://localhost:30000/call 로 접속
+
+(이 부분은 다시 체크)
