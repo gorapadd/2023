@@ -335,3 +335,108 @@ public class CallerController {
 2. BackendService 종료/실행 후 각각 http://localhost:30000/call 로 접속
 
 
+
+##
+
+1. Spring initailzr 실행
+
+Project: Gradle-Groovy
+Language: Java
+Dependencies: Spring Web, Eureka Discovery Client, OpenFeign, Resilience4J 추가
+
+Artifact, Name, Description에 'FeignServerApplication' 입력
+Packaging은 Jar, Java는 17
+
+Explore 하고 Generate
+
+다운로드된 zip을 Eclipse에서 import-Gradle-Existing Gradle Project 선택
+Project root directory를 zip 푼 경로로 지정
+
+Eclipse에서 import
+
+2. application.yml 생성
+
+server:
+  port: 32000
+
+spring:
+  application:
+    name: feign-service
+  cloud:
+    openfeign:
+      circuitbreaker:
+        enabled: true
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka
+  instance:
+    preferIpAddress: true
+
+3. FeignServerApplication 클래스에 @EnableFeignClients 추가
+
+4. MyFeignClient.java 생성
+
+package com.example.FeignServerApplication;
+
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.GetMapping;
+
+@FeignClient(name = "backend-service", fallback = MyFeignClient.MyFeignClientFallback.class) // 서비스 이름으로 호출
+public interface MyFeignClient {
+    @GetMapping("/hello") // 원격 서비스의 엔드포인트
+    String getHello();
+    
+    @Component
+    public class MyFeignClientFallback implements MyFeignClient {
+        @Override
+        public String getHello() {
+            return "Fallback Resource Data"; //
+        }
+    }
+}
+
+5. MyService.java 생성
+
+package com.example.FeignServerApplication;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+@Service
+public class MyService {
+    private final MyFeignClient feignClient;
+
+    @Autowired
+    public MyService(MyFeignClient feignClient) {
+        this.feignClient = feignClient;
+    }
+
+    public String callRemoteService() {
+        return feignClient.getHello();
+    }
+}
+
+5. FeignController.java 추가
+
+package com.example.FeignServerApplication;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class FeignController {
+	@Autowired
+    MyService myService;
+	
+    @RequestMapping("/call_feign")
+    public String call_feign() {
+    	return myService.callRemoteService();
+    }
+}
+
+http://localhost:32000/call_fein으로 접속
+이후 Backend Service 종료 후 다시 접속, 정보 갱신에 30초 정도는 걸림
