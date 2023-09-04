@@ -1,4 +1,4 @@
-Eureka Discovery Server 구동
+### Eureka Discovery Server 구동
 
 1. Spring initailzr 실행
 
@@ -37,4 +37,119 @@ eureka:
 정상 작동 확인 후 종료, 그후 gradle 빌드로 bootjar(runnable jar)를 생성
 build/libs에 jar 존재
 java -jar로 실행, http://localhost:8761 로 접속
+
+
+#### 2. Gateway + Backend
+
+* Gateway
+
+1. Spring initailzr 실행
+
+Project: Gradle-Groovy
+Language: Java
+Dependencies: Eureka Discovery Client, Gateway 추가
+
+Artifact, Name, Description에 'GatewayServerApplication' 입력
+Packaging은 Jar, Java는 17
+
+Explore 하고 Generate
+
+다운로드된 zip을 풀고 Eclipse에서 import-Gradle-Existing Gradle Project 선택
+Project root directory를 zip 푼 경로로 지정
+
+2. GatewayServerApplication.java 파일의 package 밑에 다음 줄 추가
+
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+
+public class GatewayServerApplication 위에 @EnableDiscoveryClient 어노테이션 추가
+
+3. src/main/resources/application.yml 작성
+
+server:
+  port: 8001
+
+spring:
+  application:
+    name: gateway-server
+  cloud:
+    gateway:
+      routes:
+        - id: backend-service
+          uri: lb://backend-service
+          predicates:
+            - Path=/backend/**
+          filters:
+            - RewritePath=/backend/(?<path>.*),/$\{path}
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka
+  instance:
+    preferIpAddress: true
+
+
+실행시켜서 8001 포트로 제대로 뜨는지 확인 -> Whitelabel Error Page(SpringBoot에서 Handler가 없으면 나는 오류)
+8761에 Gateway가 등록되었는지 체크
+
+정상 작동 확인 후 종료, 그후 gradle 빌드로 bootjar(runnable jar)를 생성
+build/libs에 jar 존재
+java -jar로 실행, http://localhost:8001 로 접속
+
+* Backend Service
+
+1. Spring initailzr 실행
+
+Project: Gradle-Groovy
+Language: Java
+Dependencies: Eureka Discovery Client, Spring Web 추가
+
+Artifact, Name, Description에 'BackendServiceApplication' 입력
+Packaging은 Jar, Java는 17
+
+Explore 하고 Generate
+
+다운로드된 zip을 풀고 Eclipse에서 import-Gradle-Existing Gradle Project 선택
+Project root directory를 zip 푼 경로로 지정
+
+2. BackendServiceApplication.java 파일의 package 밑에 다음 줄 추가
+
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+
+public class BackendServiceApplication 위에 @EnableDiscoveryClient 어노테이션 추가
+
+3. 새 클래스 HelloController 추가
+
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class HelloController {
+    @RequestMapping("/hello")
+    public String hello() {
+        return "Hello backend service";
+    }
+}
+
+4. src/main/resources/application.yml 작성
+
+server:
+  port: 8002
+
+spring:
+  application:
+    name: backend-service
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka
+  instance:
+    preferIpAddress: true
+
+실행하고 localhost:8002, localhost:8002/hello 까지 접속
+
+http://localhost:8001/backend/hello 여기까지 되면 모두 완성
+
+gradle task에서 bootJar로 생성하여 다시 구동
 
