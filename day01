@@ -282,3 +282,56 @@ eureka:
 
 gradle 빌드로 jar 만들고 두개 구동, 각각 다른 포트로 실행되면 성공
 http://localhost:8001/backend/hello로 다시 접속
+
+##
+
+1. CallerApplication.java 소스 수정
+
+package com.example.CallerServerApplication;
+
+import java.net.URI;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+
+@RestController
+public class CallerController {
+    @Autowired
+    private RestTemplate restTemplate;
+    
+    @Autowired
+    private DiscoveryClient discoveryClient;
+
+    @CircuitBreaker(name = "callOtherService", fallbackMethod = "fallbackMethod")
+    @RequestMapping("/call")
+    public String callOtherService() {
+        String uri = getEndPointByServiceName("backend-service");
+        String result = restTemplate.getForObject(uri + "/hello", String.class);
+      return "Result from other service: " + result;
+    }
+
+    public String fallbackMethod(Throwable t) {
+        return "Fallback response due to: "  + t.getMessage();
+    }
+    
+    public String getEndPointByServiceName(String serviceName)
+    {
+    	List<ServiceInstance> apps = discoveryClient.getInstances(serviceName);
+    	if ( apps.size() > 0)
+    		return apps.get(0).getUri().toString();
+    	else
+    		return "";
+    } 
+    
+    
+}
+
+2. BackendService 종료/실행 후 각각 http://localhost:30000/call 로 접속
+
+
