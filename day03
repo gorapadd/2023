@@ -1,0 +1,385 @@
+https://docs.docker.com/engine/reference/builder
+
+
+##
+
+echo test >> test.html
+
+# basic image
+FROM ubuntu:18.04
+# image creator
+MAINTAINER bardroh
+# key=value
+LABEL "course"="GSC"
+# run command inside container
+RUN apt-get update
+RUN apt-get install apache2 -y
+# add files
+ADD test.html /var/www/html
+# change working directory
+WORKDIR /var/www/html
+RUN ["/bin/bash", "-c", "echo hello >> test2.html"]
+EXPOSE 80
+CMD apachectl -DFOREGROUND
+
+##
+
+ 1  whoami
+    2  mkdir /work
+    3  cd /work
+    4  git config --global user.name "Bard K. Roh"
+    5  git config --global user.email "bardroh@weable.ai"
+    6  git config --global --list
+    7  ssh-keygen
+    8  ls /root/.ssh
+    9  cat id_rsa
+   10  cat /root/.ssh/id_rsa
+   11  cat /root/.ssh/id_rsa.pub 
+   12  cat ~/.ssh/id_rsa.pub
+   13  git clone git@github.com:weable72/gsc-spring-cloud-msa-2023-1st.git
+   14  ls
+   15  cd gsc-spring-cloud-msa-2023-1st/
+   16  ls
+   17  cd src
+   18  ls
+   19  cd bardroh/
+   20  ls
+   21  cd day02/
+   22  ls
+   23  history > h4.txt
+   24  ls
+   25  git add h4.txt 
+   26  git commit 
+   27  git push
+   28  git pull
+   29  clear
+   30  cd
+   31  docker -v
+   32  docker ps
+   33  docker run -it centos:7
+   34  docker pull ubuntu:20.04
+   35  docker image ls
+   36  docker ps
+   37  docker container ls
+   38  docker network ls
+   39  docker volume ls
+   40  docker volumes
+   41  docker volume
+   42  clear
+   43  ls
+   44  docker images
+   45  docker create -it --name myubuntu ubuntu:20.04
+   46  docker ps
+   47  docker ps -a
+   48  docker start myubuntu
+   49  docker ps
+   50  docker attach myubuntu
+   51  docker ps
+   52  docker attach myubuntu
+   53  docker ps
+   54  docker ps -a
+   55  docker rm -f $(docker ps -a -q)
+   56  docker ps -a
+   57  docker run -it --name mywebserver -p 80:80 ubuntu:14.04
+   58  clear
+   59  docker ps -a
+   60  docker rm -f $(docker ps -a -q)
+   61  docker ps -a
+   62  docker run -d --name postgres-db     -e POSTGRES_DB=drupal     -e POSTGRES_USER=user     -e POSTGRES_PASSWORD=pass     -v /home/drupal_db:/var/lib/postgresql/data postgres:12
+   63  docker ps
+   64  docker ps -a
+   65  docker ps
+   66  docker logs postgres-db
+   67  ls /home/drupal_db/
+   68  docker volume create drupal-sites
+   69  docker volume ls
+   70  docker run --rm -v drupal-sites:/temporary/sites drupal:9 cp -aRT /var/www/html/sites /temporary/sites
+   71  docker ps -a
+   72  docker run --name my-drupal -d -p 80:80 --link postgres-db:my-db     -v drupal-modules:/var/www/html/modules     -v drupal-profiles:/var/www/html/profiles     -v drupal-sites:/var/www/html/sites     -v drupal-themes:/var/www/html/themes drupal:9
+   73  docker ps
+   74  docker logs my-drupal
+   75  clear
+   76  docker ps
+   77  ls /home/drupal_db/
+   78  docker volume ls
+   79  docker rm -f $(docker ps -a -q)
+   80  docker ps -a
+   81  ls /home/drupal_db/
+   82  docker volume ls
+   83  docker run -d --name postgres-db     -e POSTGRES_DB=drupal     -e POSTGRES_USER=user     -e POSTGRES_PASSWORD=pass     -v /home/drupal_db:/var/lib/postgresql/data postgres:12
+   84  docker ps
+   85  docker logs postgres-db
+   86  docker run --name my-drupal -d -p 80:80 --link postgres-db:my-db     -v drupal-modules:/var/www/html/modules     -v drupal-profiles:/var/www/html/profiles     -v drupal-sites:/var/www/html/sites     -v drupal-themes:/var/www/html/themes drupal:9
+   87  docker ps
+   88  docker logs my-drupal
+   89  clear
+   90  docker ps -a
+   91  docker rm -f $(docker ps -a -q)
+   92  docker ps -a
+   93  docker run -d --name joomla_db -e MYSQL_ROOT_PASSWORD=password -e MYSQL_DATABASE=joomla_db -v /home/joomla_db:/var/lib/mysql mysql:5.7
+   94  docker ps
+   95  docker logs joomla_db
+   96  ls /home/joomla_db/
+   97  docker run -d --name joomla -p 80:80 --link joomla_db:mysql -e JOOMLA_DB_HOST=joomla_db -e JOOMLA_DB_USER=root -e JOOMLA_DB_PASSWORD=password -e JOOMLA_DB_NAME=joomla_db -v /home/joomla_web:/var/www/html joomla
+   98  docker ps
+   99  docker logs joomla
+  100  ls /home/joomla_web/
+  101  vi /home/joomla_web/configuration.php 
+  102  docker ps
+  103  docker rm -f $(docker ps -a -q)
+  104  docker ps 
+  105  docker ps -a
+  106  ls /home/joomla_db/
+  107  ls /home/joomla_web/
+  108  docker run -d --name joomla_db -e MYSQL_ROOT_PASSWORD=password -e MYSQL_DATABASE=joomla_db -v /home/joomla_db:/var/lib/mysql mysql:5.7
+  109  docker ps
+  110  docker logs joomla_db
+  111  docker run -d --name joomla -p 80:80 --link joomla_db:mysql -e JOOMLA_DB_HOST=joomla_db -e JOOMLA_DB_USER=root -e JOOMLA_DB_PASSWORD=password -e JOOMLA_DB_NAME=joomla_db -v /home/joomla_web:/var/www/html joomla
+  112  docker ps
+  113  docker logs joomla
+  114  cd /work/
+  115  ls
+  116  cd gsc-spring-cloud-msa-2023-1st/
+  117  ls
+  118  cd src
+  119  ls
+  120  cd b
+  121  cd bardroh/
+  122  ls
+  123  cd day02/
+  124  ls
+  125  git pull
+  126  vi joomla.txt
+  127  ls
+  128  history > h5.txt
+  129  vi h5.txt 
+  130  git add *.txt
+  131  git commit
+  132  git push
+  133  git pull
+  134  git push
+  135  git pull
+  136  git push
+  137  whoami
+  138  curl -fsSL https://get.docker.com -o install-docker.sh
+  139  ls
+  140  sudo sh install-docker.sh
+  141  docker -v
+  142  docker ps
+  143  sudo su - root
+  144  clear
+  145  docker ps
+  146  history
+  147  whoami
+  148  docker -v
+  149  docker ps
+  150  docker rm -f $(docker ps -a -q)
+  151  docker ps -a
+  152  docker volume create --name myvolume
+  153  docker volume ls
+  154  docker volume inspect myvolum
+  155  docker volume inspect myvolume
+  156  cler
+  157  clear
+  158  docker volume ls
+  159  docker image ls
+  160  docker ps
+  161  docker container ls
+  162  docker  inspect myvolume
+  163  docker volume  inspect myvolume
+  164  docker run -it --name myvolume_1 -v myvolume:/root ubuntu:18.04
+  165  docker ps
+  166  docker run -it --name myvolume_2 -v myvolume:/root ubuntu:18.04
+  167  clear
+  168  cd /var/lib/docker/
+  169  ls
+  170  ls containers/
+  171  docker ps
+  172  docker ps -a
+  173  cd ..
+  174  ls
+  175  cd docker/
+  176  ls
+  177  cd volumes/
+  178  ls
+  179  cd myvolume/
+  180  la
+  181  cd _data/
+  182  la
+  183  ls
+  184  docker volume ls
+  185  docker volume inspect myvolume
+  186  clear
+  187  docker container prune
+  188  docker volume prune
+  189  docker image prune
+  190  docker network prune
+  191  clear
+  192  cd
+  193  docker ps -a
+  194  docker rm -f $(docker ps -a -q)
+  195  docker ps -0a
+  196  docker ps -a
+  197  docker image ls
+  198  df -m
+  199  docker run -it ubuntu:14.04
+  200  clear
+  201  docker ps
+  202  ifconfig
+  203  apt install net-tools
+  204  ifconfig
+  205  docker network ls
+  206  clear
+  207  docker ps
+  208  docker run -it -d ubuntu:14.04
+  209  docker ps
+  210  ifconfig
+  211  docker ps
+  212  ifconfig
+  213  docker network ls
+  214  docker network inspect bridge
+  215  docker network create --driver bridge mybridge
+  216  docker network ls
+  217  ifconfig
+  218  docker network ls
+  219  docker network create --driver bridge mybridge2
+  220  docker network ls
+  221  ifconfig
+  222  docker run -it -d --name mynetwork_container --net mybridge ubuntu:14.04
+  223  docker ps
+  224  docker attach mynetwork_container
+  225  docker network create --driver bridge --subnet=172.20.0.0/16 --ip-range=172.20.0.0/24 --gateway=172.20.0.1 my_custom_network
+  226  docker network ls
+  227  docker network inspect my_custom_network
+  228  clear
+  229  docker rm -f $(docker ps -a -q)
+  230  docker ps -a
+  231  docker run -it --name mynetwork_container --net mybridge ubuntu:14.04
+  232  clear
+  233  docker rm -f $(docker ps -a -q)
+  234  docker run -it --name network_host --net host ubuntu:14.04
+  235  docker rm -f $(docker ps -a -q)
+  236  docker ps
+  237  docker attach rsyslog_server 
+  238  c;lear
+  239  clear
+  240  docker ps -a
+  241  docker rm -f $(docker ps -a -q)
+  242  docker ps -a
+  243  docker run --name mongoDB -d -p:27017:27017 mongo:4.4
+  244  docker ps
+  245  docker logs mongoDB
+  246  docker inspect container mongoDB
+  247  vi ~/fluent.conf
+  248  docker run -d --name fluentd -p 24224:24224 -v /root/fluent.conf:/fluentd/etc/fluent.conf -e FLUENTD_CONF=fluent.conf alicek106/fluentd:mongo
+  249  docker ps
+  250  docker logs fluentd
+  251  docker run -p 80:80 -d --log-driver=fluentd --log-opt fluentd-address=172.17.0.3:24224 --log-opt tag=docker.nginx.webserver nginx
+  252  docker ps
+  253  docker exec -it mongoDB mongo
+  254  clear
+  255  docker ps
+  256  docker rm -f $(docker ps -a -q)
+  257  docker ps -a
+  258  docker search ubuntu
+  259  docker run -it --name commit_test ubuntu:14.04
+  260  clear
+  261  docker ps
+  262  docker commit -a "bardroh" -m "my first commit" commit_test commit_test:first
+  263  docker image ls
+  264  docker run -it --name commit_test2 commit_test:first
+  265  clear
+  266  docker image ls
+  267  docker inspect ubuntu:14.04
+  268  docker inspect commit_test:first
+  269  docker inspect ubuntu:14.04
+  270  docker inspect commit_test:first
+  271  docker images
+  272  docker pull nginx:1.11
+  273  docker pull nginx:1.12
+  274  docker pull drupal:10
+  275  docker rmi commit_test:first
+  276  docker rm -f $(docker ps -a -q)
+  277  docker rmi commit_test:first
+  278  docker images
+  279  clear
+  280  docker ps -a
+  281  docker run -it --name commit_container1 ubuntu:14.04
+  282  docker ps
+  283  docker commit commit_container1 my-image-name:0.0
+  284  docker image ls
+  285  docker tag my-image-name:0.0 bardroh/my-image-name:0.0
+  286  docker image ls
+  287  docker login
+  288  docker push bardroh/my-image-name:0.0
+  289  clear
+  290  docker ps -a
+  291  docker rm -f $(docker ps -a -q)
+  292  docker ps -a
+  293  docker image ls
+  294  docker rmi bardroh/my-image-name:0.0 my-name-name:0.0
+  295  docker rmi my-image-name:0.0
+  296  docker image ls
+  297  docker run -it bardroh/my-image-name:0.0
+  298  clear
+  299  docker rm -f $(docker ps -a -q)
+  300  docker ps -a
+  301  docker run -d --name myregistry -p 5000:5000 --restart=always registry:2.6
+  302  docker ps
+  303  docker logs myregistry
+  304  curl localhost:5000/v2
+  305  docker ps
+  306  docker inspect myregistry
+  307  docker tag bardroh/my-image-name:0.0 172.17.0.2:5000/my-image-name:0.0
+  308  docker image ls
+  309  docker push 172.17.0.2:5000/my-image-name:0.0
+  310  cd /usr/lib/systemd/system
+  311  ls
+  312  vi docker.service
+  313  vi /etc/default/docker
+  314  systemctl daemon-reload
+  315  systemctl restart docker
+  316  docker ps
+  317  docker push 172.17.0.2:5000/my-image-name:0.0
+  318  docker image ls
+  319  docker rmi 172.17.0.2:5000/my-image-name:0.0 bardroh/my-image-name:0.0
+  320  docker image
+  321  docker images
+  322  docker run -it 172.17.0.2:5000/my-image-name:0.0
+  323  clear
+  324  cd
+  325  clear
+  326  docker rm -f $(docker ps -a -q)
+  327  docker ps -a
+  328  mkdir dockerfile && cd dockerfile
+  329  ls
+  330  echo test >> test.html
+  331  vi test.html 
+  332  vi Dockerfile
+  333  vi test.html 
+  334  vi Dockerfile
+  335  docker build -t mybuild:0.0 . 
+  336  clear
+  337  docker image ls
+  338  docker ps
+  339  docker ps -a
+  340  docker run -d -p 80:80 --name myserver mybuild:0.0
+  341  docker ps
+  342  docker logs myserver
+  343  c
+  344  clear
+  345  ls
+  346  history
+  347  cd /work/
+  348  ls
+  349  cd gsc-spring-cloud-msa-2023-1st/
+  350  ls
+  351  cd src
+  352  ls
+  353  cd bardroh/
+  354  ls
+  355  mkdir day03
+  356  ls
+  357  cd day03/
+  358  ls
+  359  history > h1.txt
