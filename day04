@@ -1,0 +1,491 @@
+drupal-deployment.yaml
+
+apiVersion: apps/v1
+
+kind: Deployment
+metadata:
+  name: drupal
+  labels:
+    app: drupal
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: drupal
+  template:
+    metadata:
+      labels:
+        app: drupal
+    spec:
+      containers:
+        - image: drupal:9
+          name: drupal
+          ports:
+            - containerPort: 80
+              name: drupal
+
+src/bardroh/day04/drupal-service.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: drupal
+  name: drupal
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+  selector:
+    app: drupal
+
+src/bardroh/day04/jupyter-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jupyter 
+  labels:
+    app: jupyter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jupyter
+  template:
+    metadata:
+      labels:
+        app: jupyter
+    spec:
+      containers:
+        - image: bardroh/myjupyter:1.0
+          name: jupyter
+          ports:
+            - containerPort: 8888 
+              name: jupyter
+
+src/bardroh/day04/jupyter-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: jupyter 
+  name: jupyter
+spec:
+  type: NodePort
+  ports:
+    - port: 8888
+      targetPort: 8888
+      nodePort: 30003
+      protocol: TCP
+  selector:
+    app: jupyter
+
+
+src/bardroh/day04/mysql-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+  labels:
+    app: mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+        - image: mysql:5.7
+          name: mysql
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: password 
+            - name: MYSQL_DATABASE
+              value: wordpress
+          ports:
+            - containerPort: 3306
+              name: mysql
+
+src/bardroh/day04/mysql-service.yaml
+apiVersion: v1
+
+kind: Service
+metadata:
+  name: mysql
+  labels:
+    app: mysql
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3306
+  selector:
+    app: mysql 
+
+
+src/bardroh/day04/postgres-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres 
+  labels:
+    app: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - image: postgres:11
+          name: postgres
+          env:
+            - name: POSTGRES_DB 
+              value: drupal
+            - name: POSTGRES_USER
+              value: user
+            - name: POSTGRES_PASSWORD
+              value: password
+          ports:
+            - containerPort: 5432
+              name: postgres
+
+src/bardroh/day04/postgres-service.yaml
+apiVersion: v1
+
+kind: Service
+metadata:
+  name: postgres 
+  labels:
+    app: postres
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5432
+  selector:
+    app: postgres
+
+src/bardroh/day04/wordpress-deployment.yaml
+apiVersion: apps/v1
+
+kind: Deployment
+metadata:
+  name: wordpress
+  labels:
+    app: wordpress
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wordpress
+  template:
+    metadata:
+      labels:
+        app: wordpress
+    spec:
+      containers:
+        - image: wordpress:5.6
+          name: wordpress
+          env:
+          - name: WORDPRESS_DB_HOST
+            value: mysql:3306
+          - name: WORDPRESS_DB_PASSWORD
+            value: password 
+          ports:
+            - containerPort: 80
+              name: wordpress
+
+src/bardroh/day04/wordpress-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: wordpress
+  name: wordpress
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+  selector:
+    app: wordpress
+
+
+#####
+
+1. jupyter notebook을 Dockerfile로 생성하고 k8s에 배포한다. Service는 NodePort를 사용한다.
+
+2. wordpress를 k8s에 배포한다. Service는 LoadBalancer를 사용한다.
+
+3. drupal을 k8s에 배포한다. Service는 LoadBalancer를 사용한다.
+#######
+
+  488  gcloud container clusters get-credentials myk8s --zone asia-northeast3-a --project cryptic-pipe-398203
+  489  kubectl get nodes
+  490  cat /etc/*release*
+  491  ps aux
+  492  celar
+  493  clear
+  494  ls
+  495  cd .kube/
+  496  ls
+  497  vi config
+  498  kubectl get nodes -o wide
+  499  clear
+  500  kubectl get pods --all-namespaces
+  501  kubectl get pods
+  502  kubectl get nodes 
+  503  kubectl get service
+  504  kubectl run nginx-pod --image=nginx:1.11
+  505  kubetl get pods
+  506  kubectl get pods
+  507  kubectl create deployment nginx-deploy --image=nginx:1.11
+  508  kubectl get deploy
+  509  kubectl get rs
+  510  kubectl get pods
+  511  cler
+  512  clear
+  513  kubectl get pods -o wide
+  514  kubectl expose deployment nginx-deploy --name nginx-service --port 80 --type=loadbalancer
+  515  kubectl expose deployment nginx-deploy --name nginx-service --port 80 --type=LoadBalancer
+  516  kubectl get svc
+  517  kubectl describe svc nginx-service
+  518  kubectl get pods -o wide
+  519  clear
+  520  kubectl expose deployment nginx-deploy --name nginx-service --port 80 --type=LoadBalancer --dry-run=client -o yaml
+  521  kubectl expose deployment nginx-deploy --name nginx-service --port 80 --type=LoadBalancer --dry-run=client -o yaml > nginx-service.yml
+  522  vi nginx-service.yml 
+  523  kubectl create deployment nginx-deploy --image=nginx:1.11 --dry-run=client -o yaml
+  524  kubectl create deployment nginx-deploy --image=nginx:1.11 --dry-run=client -o yaml > nginx-deploy.yml
+  525  vi nginx-deploy.yml 
+  526  clear
+  527  ls *.yml
+  528  kubectl get deploy
+  529  kubectl delete deploy nginx-deploy
+  530  kubectl get deploy,rs,pods
+  531  kubectl delete pod nginx-pod
+  532  kubectl get deploy,rs,pods
+  533  kubectl get svc
+  534  kubectl delete svc nginx-service
+  535  kubectl get svc
+  536  ls
+  537  ls *.yml
+  538  vi nginx-deploy.yml 
+  539  kubectl get pods
+  540  kubectl apply -f nginx-deploy.yml 
+  541  clear
+  542  kubectl get deploy
+  543  kubectl get rs
+  544  kubectl get pods
+  545  kubectl delete pod nginx-deploy-78c6648b64-pfpqb
+  546  kubectl get pods
+  547  kubectl apply -f nginx-deploy.yml 
+  548  kubectl get pods
+  549  kubectl delete -f nginx-deploy.yml 
+  550  kubectl get deploy,rs,pods
+  551  helm
+  552  clear
+  553  kubectl get svc
+  554  ls *.yml
+  555  kubectl apply -f nginx-deploy.yml 
+  556  kubectl get deploy,rs,pods
+  557  kubectl apply -f nginx-service.yml 
+  558  kubectl get svc
+  559  clear
+  560  kubectl get svc
+  561  ls
+  562  cd kosa-saas-2023/
+  563  ls
+  564  cd src
+  565  ls
+  566  cd 1st/
+  567  ls
+  568  cd k8s/
+  569  ls
+  570  cd basic/
+  571  ls
+  572  vi hostname-svc-
+  573  clear
+  574  ls
+  575  vi deployment-nginx.yaml 
+  576  cd ..
+  577  ls
+  578  cd ..
+  579  ls
+  580  cd exercise/
+  581  ls
+  582  cd basic/
+  583  ls
+  584  vi wordpress-service.yaml 
+  585  vi wordpress-deployment.yaml 
+  586  cd ..
+  587  ls
+  588  cd ..
+  589  ls
+  590  cd ..
+  591  ls
+  592  cd 1st/
+  593  ls
+  594  cp -dpR exercise ~
+  595  cp -dpR k8s ~
+  596  clear
+  597  cd
+  598  ls
+  599  cd exercise/
+  600  ls
+  601  cd basic/
+  602  ls
+  603  cd ..
+  604  ls
+  605  cd basic/
+  606  ls
+  607  cd
+  608  ls
+  609  vi deployment-nginx.yaml 
+  610  kubectl get pods
+  611  kubectl delete deploy nginx-deploy
+  612  clear
+  613  kubectl get svc
+  614  kubectl delete svc nginx-service
+  615  kubectl get svc
+  616  kubectl get deploy,rs,pods
+  617  kubectl apply -f deployment-nginx.yaml --record
+  618  kubectl get deploy
+  619  kubectl get rs
+  620  kubectl get pods
+  621  kubectl get pods -o wide
+  622  kubectl describe pod nginx-deploy-5dc8d78dcc-9hs9w
+  623  kubectl set image deployment my-nginx-deployment nginx=nginx:1.11 --record 
+  624  kubectl get deploy
+  625  kubectl set image deployment nginx-deploy nginx=nginx:1.11 --record 
+  626  kubectl get deploy
+  627  kubectl get rs
+  628  kubectl rollout history deployment nginx-deploy
+  629  kubectl rollout undo deployment nginx-deploy --to-revision=1
+  630  kubectl get deploy,rs,pods
+  631  clear
+  632  ls
+  633  kubectl get deploy
+  634  kubectl delete deploy nginx-deploy
+  635  kubectl get svc
+  636  clear
+  637  kubectl get pods -n default
+  638  kubectl get pods --all-namespaces
+  639  kubectl get ns
+  640  clear
+  641  ls
+  642  cd exercise/
+  643  ls
+  644  cd basic/
+  645  ls
+  646  vi question1.txt 
+  647  docker -v
+  648  docker ps
+  649  vi question1.txt 
+  650  vi jupyter-deployment.yaml 
+  651  kubectl apply -f jupyter-deployment.yaml 
+  652  kubectl get deploy,rs,pods
+  653  kubectl describe pod jupyter-5487f874b6-zxkqp
+  654  kubectl get deploy,rs,pods
+  655  vi jupyter-service.yaml 
+  656  kubectl apply -f jupyter-service.yaml 
+  657  clear
+  658  kubectl get svc
+  659  kubectl describe svc jupyter
+  660  kubectl get pods -o wide
+  661  kubectl get pods
+  662  kubectl logs jupyter-5487f874b6-zxkqp
+  663  clear
+  664  ls
+  665  vi question1.txt 
+  666  vi mysql-deployment.yaml 
+  667  kubectl apply -f mysql-deployment.yaml 
+  668  kubectl get deploy
+  669  kubectl get rs
+  670  kubectl get pods
+  671  kubectl logs mysql-95c9dd9f8-4fzpf
+  672  clear
+  673  ls
+  674  vi mysql-service.yaml 
+  675  kubectl apply -f mysql-service.yaml 
+  676  kubectl get svc
+  677  kubectl describe svc mysql
+  678  kubectl get pods -o wide
+  679  clear
+  680  ls\
+  681  clear
+  682  vi wordpress-deployment.yaml 
+  683  kubectl apply -f wordpress-deployment.yaml 
+  684  kubectl get deploy
+  685  kubectl get rs,pods
+  686  kubectl logs wordpress-8447894458-5c4zk
+  687  vi wordpress-service.yaml 
+  688  kubectl apply -f wordpress-service.yaml 
+  689  kubectl get svc
+  690  kubectl describe svc wordpress
+  691  kubectl get svc
+  692  clear
+  693  ls
+  694  vi question1.txt 
+  695  vi postgres-deployment.yaml 
+  696  kubectl apply -f postgres-deployment.yaml 
+  697  kubectl get pods
+  698  kubectl get pods -o wide\
+  699  kubectl get pods -o wide
+  700  kubectl logs postgres-6b959468c6-mb22j
+  701  clear
+  702  ls
+  703  vi postgres-service.yaml 
+  704  kubectl apply -f postgres-service.yaml 
+  705  kubectl get svc
+  706  kubectl describe svc postgres
+  707  clear
+  708  ls
+  709  vi drupal-deployment.yaml 
+  710  kubectl apply -f drupal-deployment.yaml 
+  711  kubectl get pods
+  712  clear
+  713  kubectl get pods
+  714  kubectl logs drupal-7fdb4f8c79-647bs
+  715  clear
+  716  ls
+  717  vi drupal-see
+  718  vi drupal-service.yaml 
+  719  kubectl apply -f drupal-service.yaml 
+  720  kubectl get svc
+  721  clear
+  722  kubectl get svc
+  723  vi postgres-deployment.yaml 
+  724  kubectl get svc
+  725  clear
+  726  ls
+  727  cd ..
+  728  ls
+  729  cd /w
+  730  history
+  731  clear
+  732  ls
+  733  cd
+  734  ls
+  735  cd work/
+  736  ls
+  743  git clone git@github.com:weable72/gsc-spring-cloud-msa-2023-1st.git
+  744  ls
+  745  cd gsc-spring-cloud-msa-2023-1st/
+  746  ls
+  747  cd src
+  748  ls
+  749  cd bardroh/
+  750  ls
+  751  mkdir day04
+  752  history > h1.txt
